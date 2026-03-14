@@ -1,0 +1,10 @@
+app flow
+
+open -
+create a reminder, show all reminder
+each reminder should be identifiable,
+tabview
+
+
+add a button from current rem to new rem
+
