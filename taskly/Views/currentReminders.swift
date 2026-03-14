@@ -76,7 +76,6 @@ struct currentReminders: View {
                         }
                     }
                     .listRowSeparator(.hidden)
-                    .padding()
                 }
                 
                 
