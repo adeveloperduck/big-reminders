@@ -10,7 +10,7 @@ import Foundation
 
 struct reminder: Identifiable {
     let id = UUID()
-    let title: String
+    var title: String
     var isComplete: Bool = false
 }
 
@@ -22,6 +22,7 @@ struct currentReminders: View {
     @State private var inputText = ""
     @State private var savedText = ""
     @State private var reminders = Reminders
+    @State private var editingReminder: reminder? = nil
     
     var body: some View {
         Group {
@@ -39,7 +40,7 @@ struct currentReminders: View {
                         .padding()
                 }
             } else {
-                List($reminders) { $reminder in
+                List(reminders) { reminder in
                     HStack {
                         if reminder.isComplete {
                             
@@ -47,14 +48,18 @@ struct currentReminders: View {
                                 .foregroundStyle(Color.accentColor)
                                 .transition(.scale.combined(with: .opacity))
                                 .onTapGesture {
-                                    reminder.isComplete.toggle()
+                                    if let index = reminders.firstIndex(where: { $0.id == reminder.id }) {
+                                        reminders[index].isComplete.toggle()
+                                    }
                                 }
                         } else {
                             Image(systemName: "circle")
                                 .foregroundStyle(Color.accentColor)
                                 .transition(.scale.combined(with: .opacity))
                                 .onTapGesture {
-                                    reminder.isComplete.toggle()
+                                    if let index = reminders.firstIndex(where: { $0.id == reminder.id }) {
+                                        reminders[index].isComplete.toggle()
+                                    }
                                     let id = reminder.id
                                     DispatchQueue.main.asyncAfter(deadline: .now() + Double(settingsVariables.timeUntilTaskDeleted)) {
                                         withAnimation {
@@ -66,14 +71,13 @@ struct currentReminders: View {
                         }
                             
                         
-                        if reminder.isComplete {
-                            Text(reminder.title)
-                                .foregroundStyle(Color.gray)
-                                .transition(.opacity)
-                        } else {
-                            Text(reminder.title)
-                                .transition(.opacity)
-                        }
+                        Text(reminder.title)
+                            .foregroundStyle(reminder.isComplete ? .gray : .primary)
+                            .onTapGesture {
+                                inputText = reminder.title
+                                editingReminder = reminder
+                                showField = true
+                            }
                     }
                     .listRowSeparator(.hidden)
                 }
@@ -94,8 +98,18 @@ struct currentReminders: View {
             HStack {
                 TextField("Task name", text: $inputText)
                     .textFieldStyle(.roundedBorder)
-                Button("Save") {
-                    reminders.append(reminder(title: inputText))
+                Button(editingReminder == nil ? "Save" : "Update") {
+                    if let editing = editingReminder {
+                        // 🔥 EDIT MODE
+                        if let index = reminders.firstIndex(where: { $0.id == editing.id }) {
+                            reminders[index].title = inputText
+                        }
+                        editingReminder = nil
+                    } else {
+                        // 🔥 CREATE MODE
+                        reminders.append(reminder(title: inputText))
+                    }
+
                     inputText = ""
                     showField = false
                 }
@@ -107,3 +121,4 @@ struct currentReminders: View {
     #Preview {
         currentReminders()
     }
+
